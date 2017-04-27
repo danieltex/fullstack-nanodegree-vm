@@ -15,7 +15,7 @@ def deleteMatches():
     """Remove all the match records from the database."""
     conn = connect()
     cursor = conn.cursor()
-    cursor.execute("delete from match;")
+    cursor.execute("truncate match cascade;")
     conn.commit()
     conn.close()
 
@@ -24,7 +24,7 @@ def deletePlayers():
     """Remove all the player records from the database."""
     conn = connect()
     cursor = conn.cursor()
-    cursor.execute("delete from player;")
+    cursor.execute("truncate player cascade;")
     conn.commit()
     conn.close()
 
@@ -68,18 +68,7 @@ def playerStandings():
     """
     conn = connect()
     cursor = conn.cursor()
-
-    query = """
-    select p.id, p.name, wins.win_count as wins, matches.match_count as matches
-        from player as p 
-            join wins
-                on p.id = wins.id
-            join matches
-                on p.id = matches.id
-        order by wins.win_count desc;
-    """
-
-    cursor.execute(query)
+    cursor.execute("select * from player_standings order by wins desc;")
     result = cursor.fetchall()
     conn.close()
     return result
@@ -114,19 +103,9 @@ def swissPairings():
         id2: the second player's unique id
         name2: the second player's name
     """
-    conn = connect()
-    cursor = conn.cursor()
-    query = """
-    select p.id, p.name 
-        from player as p join wins as w on p.id = w.id
-        order by w.win_count desc;
-    """
-    cursor.execute(query)
-    ranking = cursor.fetchall()
-    conn.close()
-
-    evens = ranking[0::2]
-    odds = ranking[1::2]
+    standings = playerStandings()
+    evens = standings[0::2]
+    odds = standings[1::2]
     result_tuples = zip(evens, odds)
-    result = [ p1 + p2 for (p1, p2) in result_tuples ]
+    result = [ p1[0:2] + p2[0:2] for (p1, p2) in result_tuples ]
     return result

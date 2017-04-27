@@ -15,7 +15,7 @@ create database tournament;
 
 create table player (
 	id serial primary key,
-	name varchar(80)
+	name text
 );
 
 create table match (
@@ -35,3 +35,9 @@ create view matches as
 		from player as p
 	        left join match as m on p.id = m.id_winner or p.id = m.id_loser
 		group by p.id;
+
+create view player_standings as 
+	select p.id, p.name, wins.win_count as wins, matches.match_count as matches
+        from player as p 
+            join wins on p.id = wins.id
+            join matches on p.id = matches.id;
